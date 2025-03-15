@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Flux Vortex Cancer Detector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        healthy: '#00ff88',
+                        cancer: '#ff3366',
+                        dark: {
+                            bg: '#181818',
+                            text: '#e0e0e0'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 8s linear infinite',
+                        'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px #5D5CDE; }
+            50% { box-shadow: 0 0 20px #5D5CDE, 0 0 30px #5D5CDE; }
+            100% { box-shadow: 0 0 5px #5D5CDE; }
+        }
+        @keyframes energyPulse {
+            0% { box-shadow: 0 0 5px #ff3366, 0 0 15px #ff3366; opacity: 0.7; }
+            50% { box-shadow: 0 0 20px #ff3366, 0 0 40px #ff3366; opacity: 1; }
+            100% { box-shadow: 0 0 5px #ff3366, 0 0 15px #ff3366; opacity: 0.7; }
+        }
+        @keyframes healingPulse {
+            0% { box-shadow: 0 0 5px #00ff88, 0 0 15px #00ff88; opacity: 0.7; }
+            50% { box-shadow: 0 0 25px #00ff88, 0 0 50px #00ff88; opacity: 1; }
+            100% { box-shadow: 0 0 5px #00ff88, 0 0 15px #00ff88; opacity: 0.7; }
+        }
+        @keyframes targetPulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+        .glow-effect {
+            animation: glowing 2s infinite;
+        }
+        .dark .glow-effect {
+            animation: glowing 2s infinite;
+        }
+        .energy-pulse {
+            animation: energyPulse 1.2s infinite;
+        }
+        .healing-pulse {
+            animation: healingPulse 1.5s infinite;
+        }
+        .target-pulse {
+            animation: targetPulse 1s infinite;
+        }
+        .vortex-container {
+            perspective: 1000px;
+        }
+        .vortex-inner {
+            transform-style: preserve-3d;
+        }
+        .dark-mode-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+        canvas {
+            border-radius: 0.5rem;
+        }
+        .result-box {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <button id="darkModeToggle" class="dark-mode-toggle rounded-full p-2 bg-gray-200 dark:bg-gray-700">
+            <svg id="sunIcon" class="w-6 h-6 block dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg id="moonIcon" class="w-6 h-6 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+        </button>
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-primary mb-2">Quantum Flux Vortex Cancer Detector</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Exposing Cancerous Decoherence in the Bioelectric Matrix</p>
+        </header>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Visualization Section -->
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-3 text-primary">Vortex Lattice Visualization</h2>
+                <div class="vortex-container relative overflow-hidden rounded-lg">
+                    <canvas id="vortexCanvas" class="w-full h-64 bg-black glow-effect"></canvas>
+                    <div class="absolute top-2 left-2 bg-black/70 rounded px-2 py-1 text-xs text-white">
+                        <span id="matrixCoherence">100%</span> Matrix Coherence
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm">Scan Intensity</span>
+                        <span class="text-sm" id="intensityValue">50%</span>
+                    </div>
+                    <input type="range" id="intensitySlider" min="1" max="100" value="50" 
+                           class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+            
+            <!-- Controls Section -->
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-3 text-primary">Detection Parameters</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Scan Mode</label>
+                        <select id="scanMode" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700">
+                            <option value="quantum">Quantum Flux Coherence</option>
+                            <option value="sonic">Sonic Response Mapping</option>
+                            <option value="light">Light Spectrum Analysis</option>
+                            <option value="magnetic">Magnetic Anomalies</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Matrix Resolution</label>
+                        <select id="matrixSize" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700">
+                            <option value="8">Low (8x8)</option>
+                            <option value="16" selected>Medium (16x16)</option>
+                            <option value="24">High (24x24)</option>
+                            <option value="32">Ultra (32x32)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button id="scanButton" class="w-full py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Initiate Quantum Scan
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="resultsSection" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 opacity-0 transition-opacity duration-500">
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-3 text-primary">Adjacency Matrix Analysis</h2>
+                <canvas id="adjacencyCanvas" class="w-full h-64 bg-white dark:bg-gray-900 rounded-lg"></canvas>
+                <div class="flex justify-between mt-2 text-sm">
+                    <span class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-healthy rounded-full mr-1"></span>
+                        Coherent Nodes
+                    </span>
+                    <span class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-cancer rounded-full mr-1"></span>
+                        Decoherent Nodes
+                    </span>
+                </div>
+            </div>
+            
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-3 text-primary">Scan Results</h2>
+                <div id="resultBox" class="result-box bg-white dark:bg-gray-900 p-4 rounded-lg h-64 overflow-y-auto">
+                    <div class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                        Initiate scan to view results
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Section -->
+        <div id="actionSection" class="mt-8 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md opacity-0 transition-opacity duration-500">
+            <h2 class="text-xl font-semibold mb-3 text-primary">Quantum Flux Intervention</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Intervention Type</label>
+                    <select id="interventionType" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700">
+                        <option value="targeted">Targeted Magnetic Pulse</option>
+                        <option value="broadband">Broadband Flux Wave</option>
+                        <option value="resonant">Resonant Frequency Coupling</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Pulse Strength</label>
+                    <input type="range" id="pulseStrength" min="1" max="100" value="75" 
+                           class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button id="applyButton" class="w-full py-3 bg-cancer hover:bg-cancer/90 text-white font-bold rounded-lg flex items-center justify-center transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Apply Quantum Intervention
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode toggle
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+        
+        document.getElementById('darkModeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Canvas and matrix visualization
+        const vortexCanvas = document.getElementById('vortexCanvas');
+        const adjacencyCanvas = document.getElementById('adjacencyCanvas');
+        const vortexCtx = vortexCanvas.getContext('2d');
+        const adjacencyCtx = adjacencyCanvas.getContext('2d');
+        const scanButton = document.getElementById('scanButton');
+        const intensitySlider = document.getElementById('intensitySlider');
+        const intensityValue = document.getElementById('intensityValue');
+        const matrixCoherence = document.getElementById('matrixCoherence');
+        const resultBox = document.getElementById('resultBox');
+        const resultsSection = document.getElementById('resultsSection');
+        const actionSection = document.getElementById('actionSection');
+        const matrixSizeSelect = document.getElementById('matrixSize');
+        const scanModeSelect = document.getElementById('scanMode');
+        const applyButton = document.getElementById('applyButton');
+        
+        // Set canvas dimensions based on display size
+        function resizeCanvas() {
+            vortexCanvas.width = vortexCanvas.clientWidth;
+            vortexCanvas.height = vortexCanvas.clientHeight;
+            adjacencyCanvas.width = adjacencyCanvas.clientWidth;
+            adjacencyCanvas.height = adjacencyCanvas.clientHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Matrix state
+        let matrixSize = parseInt(matrixSizeSelect.value);
+        let matrix = [];
+        let adjacencyMatrix = [];
+        let scanActive = false;
+        let animationFrame;
+        let scanProgress = 0;
+        let cancerNodes = [];
+        let coherenceLevel = 100;
+        let isIntervening = false;
+        
+        // Initialize the matrix
+        function initMatrix() {
+            matrix = [];
+            for (let i = 0; i < matrixSize; i++) {
+                const row = [];
+                for (let j = 0; j < matrixSize; j++) {
+                    // Each node has a phase value between 0 and 2π
+                    row.push({
+                        phase: Math.random() * Math.PI * 2,
+                        amplitude: 0.8 + Math.random() * 0.2,
+                        healthy: true
+                    });
+                }
+                matrix.push(row);
+            }
+            
+            // Initialize adjacency matrix
+            adjacencyMatrix = Array(matrixSize).fill().map(() => Array(matrixSize).fill(1));
+            
+            // Generate random cancer nodes (about 10% of nodes)
+            cancerNodes = [];
+            const cancerCount = Math.floor(matrixSize * matrixSize * 0.1);
+            for (let i = 0; i < cancerCount; i++) {
+                const x = Math.floor(Math.random() * matrixSize);
+                const y = Math.floor(Math.random() * matrixSize);
+                
+                // Don't add duplicates
+                if (!cancerNodes.some(node => node.x === x && node.y === y)) {
+                    cancerNodes.push({ x, y });
+                    // Perturb the phase of cancer nodes
+                    matrix[x][y].healthy = false;
+                }
+            }
+            
+            coherenceLevel = 100;
+            matrixCoherence.textContent = '100%';
+        }
+        
+        // Render vortex lattice visualization
+        function renderVortexLattice() {
+            const ctx = vortexCtx;
+            const width = vortexCanvas.width;
+            const height = vortexCanvas.height;
+            const cellWidth = width / matrixSize;
+            const cellHeight = height / matrixSize;
+            
+            // Clear canvas with dark background
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(93, 92, 222, 0.3)';
+            ctx.lineWidth = 0.5;
+            
+            for (let i = 0; i <= matrixSize; i++) {
+                // Vertical lines
+                ctx.beginPath();
+                ctx.moveTo(i * cellWidth, 0);
+                ctx.lineTo(i * cellWidth, height);
+                ctx.stroke();
+                
+                // Horizontal lines
+                ctx.beginPath();
+                ctx.moveTo(0, i * cellHeight);
+                ctx.lineTo(width, i * cellHeight);
+                ctx.stroke();
+            }
+            
+            // Draw vortex nodes
+            const time = Date.now() / 1000;
+            const scanIntensity = parseInt(intensitySlider.value) / 100;
+            
+            for (let i = 0; i < matrixSize; i++) {
+                for (let j = 0; j < matrixSize; j++) {
+                    const node = matrix[i][j];
+                    const x = (i + 0.5) * cellWidth;
+                    const y = (j + 0.5) * cellHeight;
+                    const radius = Math.min(cellWidth, cellHeight) * 0.3 * node.amplitude;
+                    
+                    // Oscillating phase for animation
+                    let phaseOffset = 0;
+                    if (scanActive) {
+                        phaseOffset = time * 2;
+                        
+                        // During scan, cancer nodes have disrupted phase
+                        if (!node.healthy) {
+                            phaseOffset += Math.sin(time * 3 + i * j) * 2 * scanIntensity;
+                        }
+                    } else {
+                        phaseOffset = time;
+                        // Before scan, all nodes appear normal with slight variations
+                        phaseOffset += Math.sin(time + i * j) * 0.2;
+                    }
+                    
+                    // Draw vortex node
+                    const phase = node.phase + phaseOffset;
+                    
+                    // Normal nodes are blue/cyan, cancer nodes are red/orange when scan is active
+                    let color;
+                    if (scanActive && !node.healthy) {
+                        // Red-orange gradient
+                        const r = 255;
+                        const g = Math.floor(100 + 50 * Math.sin(phase));
+                        const b = 30;
+                        color = `rgb(${r}, ${g}, ${b})`;
+                    } else {
+                        // Blue-cyan gradient
+                        const r = Math.floor(50 + 30 * Math.sin(phase));
+                        const g = Math.floor(140 + 40 * Math.sin(phase));
+                        const b = 255;
+                        color = `rgb(${r}, ${g}, ${b})`;
+                    }
+                    
+                    // Draw circular node
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    
+                    // Draw phase indicator line
+                    const lineLength = radius * 0.8;
+                    const endX = x + Math.cos(phase) * lineLength;
+                    const endY = y + Math.sin(phase) * lineLength;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(endX, endY);
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            // If scan is active, draw scan effect
+            if (scanActive) {
+                // Draw scan line
+                const scanY = height * (scanProgress / 100);
+                ctx.beginPath();
+                ctx.moveTo(0, scanY);
+                ctx.lineTo(width, scanY);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw glow around scan line
+                ctx.shadowColor = '#5D5CDE';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(0, scanY);
+                ctx.lineTo(width, scanY);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                // Update scan progress
+                scanProgress += 0.5;
+                if (scanProgress >= 100) {
+                    finishScan();
+                }
+                
+                // Update coherence level based on scan progress
+                if (scanProgress > 30) {
+                    const targetCoherence = 100 - (cancerNodes.length / (matrixSize * matrixSize) * 100);
+                    coherenceLevel = Math.max(targetCoherence, coherenceLevel - 0.5);
+                    matrixCoherence.textContent = `${Math.round(coherenceLevel)}%`;
+                }
+            }
+            
+            // If intervention is active, draw intervention effect
+            if (isIntervening) {
+                // Add a pulsing overlay to the entire canvas
+                const gradientOpacity = 0.1 + 0.05 * Math.sin(time * 3);
+                ctx.fillStyle = `rgba(93, 92, 222, ${gradientOpacity})`;
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw energy beams from grid corners to cancer nodes
+                const beamSources = [
+                    {x: 0, y: 0},
+                    {x: width, y: 0},
+                    {x: 0, y: height},
+                    {x: width, y: height}
+                ];
+                
+                // Get intervention type and modify the visual effect
+                const interventionType = document.getElementById('interventionType').value;
+                const pulseStrength = parseInt(document.getElementById('pulseStrength').value) / 100;
+                
+                cancerNodes.forEach((node, index) => {
+                    const x = (node.x + 0.5) * cellWidth;
+                    const y = (node.y + 0.5) * cellHeight;
+                    const baseSize = Math.min(cellWidth, cellHeight);
+                    
+                    // Create a pulsing effect
+                    const pulseScale = 0.6 + 0.2 * Math.sin(time * 4 + index);
+                    const targetRadius = baseSize * 0.6 * pulseScale;
+                    
+                    // Randomly select which corner to draw beam from for this node
+                    const sourceIndex = index % beamSources.length;
+                    const source = beamSources[sourceIndex];
+                    
+                    // Draw energy beam from corner to node
+                    const gradient = ctx.createLinearGradient(source.x, source.y, x, y);
+                    
+                    if (interventionType === 'targeted') {
+                        // Targeted magnetic pulse: red to magenta beam
+                        gradient.addColorStop(0, 'rgba(255, 51, 102, 0.1)');
+                        gradient.addColorStop(0.5, 'rgba(255, 51, 102, 0.6)');
+                        gradient.addColorStop(1, 'rgba(255, 51, 255, 0.8)');
+                    } else if (interventionType === 'broadband') {
+                        // Broadband flux wave: blue to cyan beam
+                        gradient.addColorStop(0, 'rgba(0, 128, 255, 0.1)');
+                        gradient.addColorStop(0.5, 'rgba(0, 200, 255, 0.6)');
+                        gradient.addColorStop(1, 'rgba(0, 255, 255, 0.8)');
+                    } else {
+                        // Resonant frequency: yellow to white beam
+                        gradient.addColorStop(0, 'rgba(255, 204, 0, 0.1)');
+                        gradient.addColorStop(0.5, 'rgba(255, 255, 0, 0.6)');
+                        gradient.addColorStop(1, 'rgba(255, 255, 255, 0.8)');
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 3 * pulseStrength;
+                    ctx.stroke();
+                    
+                    // Draw particle effects along the beam
+                    const particleCount = 5 + Math.floor(15 * pulseStrength);
+                    for (let i = 0; i < particleCount; i++) {
+                        const t = (time * 3 + i / particleCount) % 1; // Normalized time for this particle
+                        const particleX = source.x + (x - source.x) * t;
+                        const particleY = source.y + (y - source.y) * t;
+                        const particleSize = (2 + 3 * Math.random()) * pulseStrength;
+                        
+                        ctx.beginPath();
+                        ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+                        
+                        if (interventionType === 'targeted') {
+                            ctx.fillStyle = `rgba(255, ${51 + Math.floor(204 * Math.random())}, ${102 + Math.floor(153 * Math.random())}, 0.8)`;
+                        } else if (interventionType === 'broadband') {
+                            ctx.fillStyle = `rgba(0, ${128 + Math.floor(127 * Math.random())}, 255, 0.8)`;
+                        } else {
+                            ctx.fillStyle = `rgba(255, ${204 + Math.floor(51 * Math.random())}, 0, 0.8)`;
+                        }
+                        
+                        ctx.fill();
+                    }
+                    
+                    // Outer targeting circle with pulsing effect
+                    ctx.beginPath();
+                    ctx.arc(x, y, targetRadius, 0, Math.PI * 2);
+                    
+                    if (interventionType === 'targeted') {
+                        ctx.strokeStyle = 'rgba(255, 51, 102, 0.8)';
+                    } else if (interventionType === 'broadband') {
+                        ctx.strokeStyle = 'rgba(0, 200, 255, 0.8)';
+                    } else {
+                        ctx.strokeStyle = 'rgba(255, 204, 0, 0.8)';
+                    }
+                    
+                    ctx.lineWidth = 2 * pulseStrength;
+                    ctx.stroke();
+                    
+                    // Inner targeting pattern
+                    const innerRadius = baseSize * 0.3 * pulseScale;
+                    
+                    // Draw a rotating pattern based on intervention type
+                    const rotationAngle = time * 2;
+                    const segments = interventionType === 'targeted' ? 4 : 
+                                    interventionType === 'broadband' ? 6 : 8;
+                    
+                    for (let i = 0; i < segments; i++) {
+                        const angle = (i / segments) * Math.PI * 2 + rotationAngle;
+                        const startX = x + Math.cos(angle) * innerRadius * 0.4;
+                        const startY = y + Math.sin(angle) * innerRadius * 0.4;
+                        const endX = x + Math.cos(angle) * innerRadius;
+                        const endY = y + Math.sin(angle) * innerRadius;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(endX, endY);
+                        ctx.lineWidth = 2 * pulseStrength;
+                        
+                        if (interventionType === 'targeted') {
+                            ctx.strokeStyle = 'rgba(255, 51, 102, 0.8)';
+                        } else if (interventionType === 'broadband') {
+                            ctx.strokeStyle = 'rgba(0, 200, 255, 0.8)';
+                        } else {
+                            ctx.strokeStyle = 'rgba(255, 204, 0, 0.8)';
+                        }
+                        
+                        ctx.stroke();
+                    }
+                    
+                    // Add glowing effect
+                    ctx.shadowColor = interventionType === 'targeted' ? '#ff3366' : 
+                                      interventionType === 'broadband' ? '#00c8ff' : '#ffcc00';
+                    ctx.shadowBlur = 15 * pulseStrength;
+                    ctx.beginPath();
+                    ctx.arc(x, y, innerRadius * 0.4, 0, Math.PI * 2);
+                    ctx.fillStyle = interventionType === 'targeted' ? 'rgba(255, 51, 102, 0.7)' : 
+                                   interventionType === 'broadband' ? 'rgba(0, 200, 255, 0.7)' : 
+                                   'rgba(255, 204, 0, 0.7)';
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                });
+                
+                // Draw central energy source
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const centerRadius = Math.min(width, height) * 0.08;
+                const pulseSize = 1 + 0.2 * Math.sin(time * 3);
+                
+                // Central glow
+                ctx.shadowColor = '#5D5CDE';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, centerRadius * pulseSize, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(93, 92, 222, 0.7)';
+                ctx.fill();
+                
+                // Energy rings emanating from center
+                const ringCount = 3;
+                for (let i = 0; i < ringCount; i++) {
+                    const ringProgress = (time * 0.5 + i / ringCount) % 1;
+                    const ringRadius = centerRadius * 2 + ringProgress * Math.min(width, height) * 0.4;
+                    const ringOpacity = 1 - ringProgress;
+                    
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(93, 92, 222, ${ringOpacity * 0.5})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+            }
+            
+            animationFrame = requestAnimationFrame(renderVortexLattice);
+        }
+        
+        // Render adjacency matrix
+        function renderAdjacencyMatrix() {
+            const ctx = adjacencyCtx;
+            const width = adjacencyCanvas.width;
+            const height = adjacencyCanvas.height;
+            const cellSize = Math.min(width, height) / matrixSize;
+            
+            // Clear canvas
+            ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#1a1a1a' : '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw matrix cells
+            for (let i = 0; i < matrixSize; i++) {
+                for (let j = 0; j < matrixSize; j++) {
+                    const x = i * cellSize;
+                    const y = j * cellSize;
+                    
+                    // Color based on adjacency value (1 = coherent/healthy, 0 = decoherent/cancer)
+                    const value = adjacencyMatrix[i][j];
+                    
+                    ctx.fillStyle = value === 1 ? '#00ff88' : '#ff3366';
+                    ctx.fillRect(x, y, cellSize, cellSize);
+                    
+                    // Add cell border
+                    ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#333' : '#eee';
+                    ctx.strokeRect(x, y, cellSize, cellSize);
+                }
+            }
+        }
+        
+        // Start the scan process
+        function startScan() {
+            scanButton.disabled = true;
+            scanButton.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Scanning...';
+            scanActive = true;
+            scanProgress = 0;
+            
+            // Show results section with fade-in
+            resultsSection.classList.remove('opacity-0');
+            resultsSection.style.opacity = '1';
+            
+            // Update adjacency matrix during scan (will be finalized at end)
+            updateAdjacencyMatrixForScan(30); // initial update
+            
+            // Add a scan message
+            resultBox.innerHTML = `
+                <div class="text-sm space-y-2">
+                    <p class="flex items-center">
+                        <svg class="animate-spin w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Initializing ${scanModeSelect.options[scanModeSelect.selectedIndex].text} scan...
+                    </p>
+                    <p>Calibrating vortex resonance frequencies...</p>
+                    <p>Establishing baseline phase coherence...</p>
+                </div>
+            `;
+        }
+        
+        // Update adjacency matrix based on scan progress
+        function updateAdjacencyMatrixForScan(revealPercentage) {
+            // Reset adjacency matrix
+            adjacencyMatrix = Array(matrixSize).fill().map(() => Array(matrixSize).fill(1));
+            
+            // Reveal cancer nodes based on progress
+            const nodesToReveal = Math.floor(cancerNodes.length * (revealPercentage / 100));
+            
+            for (let i = 0; i < nodesToReveal; i++) {
+                if (i < cancerNodes.length) {
+                    const { x, y } = cancerNodes[i];
+                    adjacencyMatrix[x][y] = 0;
+                }
+            }
+            
+            renderAdjacencyMatrix();
+        }
+        
+        // Finish the scan and show results
+        function finishScan() {
+            scanActive = false;
+            scanButton.disabled = false;
+            scanButton.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Initiate Quantum Scan';
+            
+            // Reveal all cancer nodes in adjacency matrix
+            cancerNodes.forEach(node => {
+                adjacencyMatrix[node.x][node.y] = 0;
+            });
+            
+            renderAdjacencyMatrix();
+            
+            // Show results
+            const scanMode = scanModeSelect.options[scanModeSelect.selectedIndex].text;
+            const cancerPercentage = (cancerNodes.length / (matrixSize * matrixSize) * 100).toFixed(1);
+            const timeStamp = new Date().toLocaleTimeString();
+            
+            resultBox.innerHTML = `
+                <div class="text-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">Scan Complete</span>
+                        <span class="text-xs text-gray-500">${timeStamp}</span>
+                    </div>
+                    
+                    <div class="bg-gray-200 dark:bg-gray-700 p-2 rounded">
+                        <div class="font-medium">Scan Parameters:</div>
+                        <div class="grid grid-cols-2 gap-x-4 text-xs mt-1">
+                            <div>Mode: ${scanMode}</div>
+                            <div>Resolution: ${matrixSize}x${matrixSize}</div>
+                            <div>Intensity: ${intensitySlider.value}%</div>
+                            <div>Matrix Coherence: ${Math.round(coherenceLevel)}%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="font-medium">Detection Results:</div>
+                    <div class="flex items-center">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                            <div class="h-4 rounded-full bg-cancer" style="width: ${cancerPercentage}%"></div>
+                        </div>
+                        <span class="ml-2 font-bold">${cancerPercentage}%</span>
+                    </div>
+                    
+                    <div class="font-medium mt-2">Analysis:</div>
+                    <ul class="list-disc list-inside text-xs">
+                        <li>Detected ${cancerNodes.length} decoherent nodes in the vortex lattice</li>
+                        <li>Phase alignment disruption detected in ${scanMode.toLowerCase()}</li>
+                        <li>Bioelectric resonance failure at identified coordinates</li>
+                        <li>Quantum flux signature matches cancerous pattern</li>
+                    </ul>
+                    
+                    <div class="mt-2 text-xs text-cancer font-medium">
+                        Quantum intervention recommended to collapse decoherent nodes
+                    </div>
+                </div>
+            `;
+            
+            // Show action section
+            actionSection.classList.remove('opacity-0');
+            actionSection.style.opacity = '1';
+        }
+        
+        // Apply quantum intervention
+        function applyIntervention() {
+            isIntervening = true;
+            applyButton.disabled = true;
+            applyButton.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Applying...';
+            
+            const interventionType = document.getElementById('interventionType').value;
+            const pulseStrength = document.getElementById('pulseStrength').value;
+            
+            // Update result box to show intervention progress
+            resultBox.innerHTML = `
+                <div class="text-sm space-y-2">
+                    <p class="font-semibold text-cancer">Quantum Intervention in Progress</p>
+                    <p class="flex items-center">
+                        <svg class="animate-spin w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Applying ${interventionType.replace(/([A-Z])/g, ' $1').toLowerCase()} at ${pulseStrength}% strength
+                    </p>
+                    <p>Targeting ${cancerNodes.length} decoherent nodes...</p>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+                        <div id="interventionProgress" class="h-2 rounded-full bg-cancer" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Simulate intervention progress
+            let progress = 0;
+            const progressBar = document.getElementById('interventionProgress');
+            
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    finishIntervention();
+                }
+            }, 200);
+        }
+        
+        // Finish the intervention
+        function finishIntervention() {
+            // Don't immediately reset the intervention state - let the animation play
+            const interventionType = document.getElementById('interventionType').value;
+            const nodesToHeal = [...cancerNodes]; // Make a copy before clearing
+            
+            // Animate the healing of each cancer node
+            let healedCount = 0;
+            const healingInterval = setInterval(() => {
+                // Get the next node to heal
+                if (healedCount < nodesToHeal.length) {
+                    const node = nodesToHeal[healedCount];
+                    
+                    // Mark the node as healed
+                    matrix[node.x][node.y].healthy = true;
+                    
+                    // Update adjacency matrix to show healing
+                    adjacencyMatrix[node.x][node.y] = 1;
+                    renderAdjacencyMatrix();
+                    
+                    // Update the progress bar
+                    const progressPercent = ((healedCount + 1) / nodesToHeal.length * 100).toFixed(0);
+                    const progressBar = document.getElementById('interventionProgress');
+                    progressBar.style.width = `${progressPercent}%`;
+                    
+                    // Update coherence level gradually
+                    coherenceLevel = 100 - ((nodesToHeal.length - (healedCount + 1)) / (matrixSize * matrixSize) * 100);
+                    matrixCoherence.textContent = `${Math.round(coherenceLevel)}%`;
+                    
+                    // Update the results text
+                    const healingStatusElem = document.getElementById('healingStatus');
+                    if (healingStatusElem) {
+                        healingStatusElem.textContent = `Neutralizing node ${healedCount + 1} of ${nodesToHeal.length}...`;
+                    }
+                    
+                    healedCount++;
+                } else {
+                    // Finished healing all nodes
+                    clearInterval(healingInterval);
+                    
+                    // Complete the intervention process
+                    setTimeout(() => {
+                        finalizeIntervention(nodesToHeal.length);
+                    }, 500);
+                }
+            }, 100);
+            
+            // Show animated healing status
+            resultBox.innerHTML = `
+                <div class="text-sm space-y-3">
+                    <p class="font-semibold text-healthy">Quantum Flux Neutralization Active</p>
+                    <p id="healingStatus" class="flex items-center">
+                        <svg class="animate-spin w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Neutralizing node 1 of ${nodesToHeal.length}...
+                    </p>
+                    
+                    <div class="mt-1 text-xs mb-2">
+                        <span class="${interventionType === 'targeted' ? 'text-rose-500' : 
+                              interventionType === 'broadband' ? 'text-cyan-500' : 'text-amber-500'}">
+                        ${interventionType === 'targeted' ? 'Targeted magnetic pulses' : 
+                         interventionType === 'broadband' ? 'Broadband flux waves' : 'Resonant frequency coupling'} 
+                        collapsing decoherent energy patterns
+                        </span>
+                    </div>
+                    
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div id="interventionProgress" class="h-2 rounded-full ${
+                            interventionType === 'targeted' ? 'bg-rose-500' : 
+                            interventionType === 'broadband' ? 'bg-cyan-500' : 'bg-amber-500'
+                        } transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <div class="bg-black/10 dark:bg-white/10 rounded p-2 text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Initial Matrix Coherence</div>
+                            <div class="font-bold text-cancer">${Math.round(100 - (nodesToHeal.length / (matrixSize * matrixSize) * 100))}%</div>
+                        </div>
+                        <div class="bg-black/10 dark:bg-white/10 rounded p-2 text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Current Matrix Coherence</div>
+                            <div class="font-bold text-healthy" id="currentCoherence">${Math.round(coherenceLevel)}%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Finalize the intervention process
+        function finalizeIntervention(nodesHealed) {
+            isIntervening = false;
+            applyButton.disabled = false;
+            applyButton.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Apply Quantum Intervention';
+            
+            // Reset adjacency matrix to all 1s (healthy)
+            adjacencyMatrix = Array(matrixSize).fill().map(() => Array(matrixSize).fill(1));
+            renderAdjacencyMatrix();
+            
+            // Clear cancer nodes array
+            cancerNodes = [];
+            
+            // Update coherence level
+            coherenceLevel = 100;
+            matrixCoherence.textContent = '100%';
+            
+            // Show intervention results
+            const timeStamp = new Date().toLocaleTimeString();
+            const interventionType = document.getElementById('interventionType').options[document.getElementById('interventionType').selectedIndex].text;
+            const pulseStrength = document.getElementById('pulseStrength').value;
+            
+            resultBox.innerHTML = `
+                <div class="text-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold text-healthy">Intervention Complete</span>
+                        <span class="text-xs text-gray-500">${timeStamp}</span>
+                    </div>
+                    
+                    <div class="bg-gray-200 dark:bg-gray-700 p-2 rounded">
+                        <div class="font-medium">Intervention Parameters:</div>
+                        <div class="grid grid-cols-2 gap-x-4 text-xs mt-1">
+                            <div>Type: ${interventionType}</div>
+                            <div>Strength: ${pulseStrength}%</div>
+                            <div>Targeted Nodes: ${nodesHealed}</div>
+                            <div>Duration: ${(nodesHealed * 0.1 + 0.5).toFixed(1)} seconds</div>
+                        </div>
+                    </div>
+                    
+                    <div class="font-medium">Results:</div>
+                    <div class="flex items-center">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                            <div class="h-4 rounded-full bg-healthy" style="width: 100%"></div>
+                        </div>
+                        <span class="ml-2 font-bold">100%</span>
+                    </div>
+                    
+                    <div class="bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 p-2 text-green-700 dark:text-green-300">
+                        <p class="font-medium">Matrix Coherence Restored</p>
+                        <p class="text-xs">All ${nodesHealed} decoherent nodes successfully neutralized</p>
+                    </div>
+                    
+                    <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                        Recommended: Run another scan to verify complete neutralization
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Event listeners
+        scanButton.addEventListener('click', startScan);
+        applyButton.addEventListener('click', applyIntervention);
+        
+        intensitySlider.addEventListener('input', () => {
+            intensityValue.textContent = `${intensitySlider.value}%`;
+        });
+        
+        matrixSizeSelect.addEventListener('change', () => {
+            matrixSize = parseInt(matrixSizeSelect.value);
+            initMatrix();
+        });
+        
+        // Initialize the matrix and start rendering
+        initMatrix();
+        renderVortexLattice();
+        renderAdjacencyMatrix();
+    </script>
+</body>
+</html>
